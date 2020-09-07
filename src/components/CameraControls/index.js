@@ -19,15 +19,25 @@ const CameraControls = (props) => {
       onMouseDown: (event) => {
         mouseDownRef.current = true;
         setGridNeedsUpdate(true);
+
+        // Disabled pointer-events to prevent showing info box on hover
+        document.querySelector(".main > div:first-child").style.pointerEvents =
+          "none";
+
         controls.current.onMouseDown(event);
       },
       onMouseUp: (event) => {
         mouseDownRef.current = false;
         setGridNeedsUpdate(false);
+
+        // Re-enable pointer-events
+        document.querySelector(".main > div:first-child").style.pointerEvents =
+          "auto";
+
         controls.current.onMouseUp(event);
       },
       onMouseMove: (event) => {
-        if (mouseDownRef) {
+        if (mouseDownRef.current) {
           controls.current.onMouseMove(event);
         }
       },
@@ -55,7 +65,7 @@ const CameraControls = (props) => {
       ref={controls}
       args={[camera, gl.domElement]}
       enableDamping
-      dampingFactor={0.05}
+      dampingFactor={0.025}
       panSpeed={1.5}
       mouseButtons={{
         LEFT: THREE.MOUSE.PAN,

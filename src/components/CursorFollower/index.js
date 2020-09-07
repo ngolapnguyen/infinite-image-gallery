@@ -60,8 +60,12 @@ const CursorFollower = () => {
         setCircleTrail({ xy: [event.clientX, event.clientY] });
         updateDotPos(event.clientX, event.clientY);
       },
-      onMouseDown: () => setMouseDown(true),
-      onMouseUp: () => setMouseDown(false),
+      onMouseDown: () => {
+        setMouseDown(true);
+      },
+      onMouseUp: () => {
+        setMouseDown(false);
+      },
     },
     {
       domTarget: window,

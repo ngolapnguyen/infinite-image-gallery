@@ -1,57 +1,47 @@
-import React, { useMemo } from "react";
-import * as THREE from "three";
-import { GRID_COLUMN_WIDTH, GRID_ITEM_PADDING } from "components/Grid";
-import gridShader from "shaders/gridShader";
-import { useLoader } from "react-three-fiber";
-import { getTextureFactor } from "utils";
+import React, { useRef, useState, useEffect, useMemo } from "react";
+import { animated } from "react-spring/three";
+import { Html } from "drei";
 
 const GridItem = React.forwardRef(({ data, position }, ref) => {
-  const texture = useLoader(THREE.TextureLoader, [data.image]);
-  const textureFactor = useMemo(() => {
-    if (texture[0]?.image) {
-      return getTextureFactor(
-        (GRID_COLUMN_WIDTH - GRID_ITEM_PADDING) /
-          (data.height - GRID_ITEM_PADDING),
-        texture[0]
-      );
+  const internalRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onPointerOver = () => setIsHovered(true);
+  const onPointerOut = () => setIsHovered(false);
+
+  useEffect(() => {
+    if (isHovered) {
+      internalRef.current.material.uniforms.uBrightness.value = 0.6;
+    } else {
+      internalRef.current.material.uniforms.uBrightness.value = 1;
     }
-  }, [texture, data.height]);
+  }, [isHovered]);
 
-  if (!data) {
-    return null;
-  }
-
-  const uniforms = {
-    uTexture: {
-      type: "t",
-      value: undefined,
-    },
-    uTextureFactor: {
-      type: "f",
-      value: undefined,
-    },
-  };
+  const infoBoxRender = useMemo(
+    () => (
+      <Html center>
+        <div className="info-box">
+          <p className="info-box__title">{data.title}</p>
+          <p className="info-box__desc">{data.description}</p>
+        </div>
+      </Html>
+    ),
+    []
+  );
 
   return (
-    <mesh ref={ref} position={position}>
-      <planeBufferGeometry
-        attach="geometry"
-        args={[
-          GRID_COLUMN_WIDTH - GRID_ITEM_PADDING,
-          data.height - GRID_ITEM_PADDING,
-          100,
-          100,
-        ]}
-      />
-      <shaderMaterial
-        attach="material"
-        uniforms={uniforms}
-        uniforms-uTexture-value={texture[0]}
-        uniforms-uTextureFactor-value={textureFactor}
-        vertexShader={gridShader.vertexShader}
-        fragmentShader={gridShader.fragmentShader}
-      />
-    </mesh>
+    <animated.mesh
+      {...data}
+      ref={(meshRef) => {
+        internalRef.current = meshRef;
+        ref && ref(meshRef);
+      }}
+      position={position}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    >
+      {isHovered && infoBoxRender}
+    </animated.mesh>
   );
 });
 

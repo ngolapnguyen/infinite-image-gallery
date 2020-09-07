@@ -9,8 +9,47 @@ body {
   height: 100%;
   overflow: hidden;
   cursor: auto;
+  font-family: "Josefin Sans", sans-serif;
 }
 
-#root {
+#root,
+.main {
   height: 100%;
+}
+
+p {
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.main > div canvas + div {
+  pointer-events: none;
+  filter: drop-shadow(0 0 0.2rem rgba(255, 255, 255, 1));
+}
+
+.info-box {
+  animation: fadeIn 0.3s forwards;
+  width: 350px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.info-box__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.info-box__desc {
+  font-size: 1rem;
+  line-height: 1.5;
 }

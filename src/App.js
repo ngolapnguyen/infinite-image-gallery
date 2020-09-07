@@ -15,7 +15,7 @@ function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <>
+    <div className="main">
       <Canvas
         camera={{
           position: [0, 0, Z_OFFSET],
@@ -25,15 +25,14 @@ function App() {
         }}
       >
         {dataLoaded && <Grid />}
-        <mesh position={[0, 0, 0]}>
-          <planeBufferGeometry attach="geometry" args={[1, 1]} />
-          <meshBasicMaterial attach="material" />
-        </mesh>
-        <gridHelper args={[999, 999]} rotation={[Math.PI * 0.5, 0, 0]} />
+        <gridHelper
+          args={[999, 999, 0x222222, 0x222222]}
+          rotation={[Math.PI * 0.5, 0, 0]}
+        />
         <CameraControls />
       </Canvas>
       <CursorFollower />
-    </>
+    </div>
   );
 }
 
