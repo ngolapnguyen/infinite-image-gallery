@@ -1,68 +1,45 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Infinite Image Gallery with `react-three-fiber`
 
-## Available Scripts
+[![Netlify Status](https://api.netlify.com/api/v1/badges/0354da48-43b4-4ef6-bb25-35a695d25763/deploy-status)](https://app.netlify.com/sites/nnl-infinite-image-gallery/deploys)
 
-In the project directory, you can run:
+[View Deployment](https://nnl-infinite-image-gallery.netlify.app/)
 
-### `npm start`
+---
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+This is a reimplementation of the infinite image gallery on [Bien Joué](https://bien-joue.ca/fr/) with `react-three-fiber`. Performance issues are still around but in general the core logic of an infinite gallery is achieved. It was a really interesting problem.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+## How to run
 
-### `npm test`
+```
+yarn
+yarn start
+```
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+or
 
-### `npm run build`
+```
+npm install
+npm start
+```
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## A few words
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+### Two core problems I solved in this project: {#solutions}
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. How to build an infinite image gallery:
+   - Render multiple duplicate grids that surround the center, original grid (I ended up with 3x3 = 9 grids). Keep track of which grid is in center and which are the boundaries
+   - Detecting the visibility of each boundary grid in accordance with current camera's position
+   - Under the correct conditions (boundary reached), update the grids' position & update the grids' position tracker. E.g.: Top boundary reached, move the whole bottom 3 grids up top. Now the first row becomes the middle row, and the center row becomes the bottom row...
+2. Update vertex shader on `mousemove`, calculating mouse's offset distance with current camera's position & update the image distortion effect.
 
-### `npm run eject`
+### Major issues I'm awared of and haven't been able to solve: {#issues}
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- Performance. Rendering multiple meshes at the same time is heavy. I'm still looking for a way to optimize this
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Dependencies
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+- `three.js`
+- `react` and `react-three-fiber`
+- `react-spring`
+- `zustand`
+- GLSL (shaders)
