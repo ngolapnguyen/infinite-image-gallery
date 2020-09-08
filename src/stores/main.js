@@ -121,50 +121,65 @@ const [useMainStore] = create((set) => ({
       });
 
       // Re-calculate the y coord of each item
-      gridData = gridData.map((entry) => ({
-        ...entry,
-        y: entry.y - maxHeight / 2,
-        geometry: new THREE.PlaneBufferGeometry(
-          GRID_COLUMN_WIDTH - GRID_ITEM_PADDING,
-          entry.height - GRID_ITEM_PADDING,
-          100,
-          100
-        ),
-        material: new THREE.ShaderMaterial({
-          uniforms: {
-            uTexture: {
-              type: "t",
-              value: entry.texture,
+      // & map geometry & material
+      gridData = gridData.map((entry) => {
+        let zOffset = Math.random() * 4 - 2;
+
+        return {
+          ...entry,
+          y: entry.y - maxHeight / 2,
+          geometry: new THREE.PlaneBufferGeometry(
+            GRID_COLUMN_WIDTH - GRID_ITEM_PADDING,
+            entry.height - GRID_ITEM_PADDING,
+            100,
+            100
+          ),
+          material: new THREE.ShaderMaterial({
+            uniforms: {
+              uTexture: {
+                type: "t",
+                value: entry.texture,
+              },
+              uTextureFactor: {
+                type: "f",
+                value: getTextureFactor(
+                  (GRID_COLUMN_WIDTH - GRID_ITEM_PADDING) /
+                    (entry.height - GRID_ITEM_PADDING),
+                  entry.texture
+                ),
+              },
+              uResolution: {
+                type: "f",
+                value: new THREE.Vector2(GRID_COLUMN_WIDTH, entry.height),
+              },
+              uDistanceDiffFromCamera: {
+                type: "f",
+                value: new THREE.Vector2(0, 0),
+              },
+              uMouseDownProgress: {
+                type: "f",
+                value: 0,
+              },
+              uOffsetProgress: {
+                type: "f",
+                value: 0,
+              },
+              uZOffset: {
+                type: "f",
+                value: zOffset,
+              },
+              uBrightness: {
+                type: "f",
+                value: 1,
+              },
             },
-            uTextureFactor: {
-              type: "f",
-              value: getTextureFactor(
-                (GRID_COLUMN_WIDTH - GRID_ITEM_PADDING) /
-                  (entry.height - GRID_ITEM_PADDING),
-                entry.texture
-              ),
-            },
-            uResolution: {
-              type: "f",
-              value: new THREE.Vector2(GRID_COLUMN_WIDTH, entry.height),
-            },
-            uDistanceDiffFromCamera: {
-              type: "f",
-              value: new THREE.Vector2(0, 0),
-            },
-            uMouseDownProgress: {
-              type: "f",
-              value: 0,
-            },
-            uBrightness: {
-              type: "f",
-              value: 1,
-            },
-          },
-          vertexShader: gridShader.vertexShader,
-          fragmentShader: gridShader.fragmentShader,
-        }),
-      }));
+            vertexShader: gridShader.vertexShader,
+            fragmentShader: gridShader.fragmentShader,
+            transparent: true,
+            side: THREE.DoubleSide,
+          }),
+        };
+      });
 
       return gridData;
     };

@@ -1,21 +1,21 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { animated } from "react-spring/three";
 import { Html } from "drei";
+import { useSpring } from "react-spring";
 
 const GridItem = React.forwardRef(({ data, position }, ref) => {
   const internalRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
+  useSpring({
+    brightness: isHovered ? 0.6 : 1,
+    onFrame: ({ brightness }) => {
+      internalRef.current.material.uniforms.uBrightness.value = brightness;
+    },
+  });
+
   const onPointerOver = () => setIsHovered(true);
   const onPointerOut = () => setIsHovered(false);
-
-  useEffect(() => {
-    if (isHovered) {
-      internalRef.current.material.uniforms.uBrightness.value = 0.6;
-    } else {
-      internalRef.current.material.uniforms.uBrightness.value = 1;
-    }
-  }, [isHovered]);
 
   const infoBoxRender = useMemo(
     () => (
@@ -26,7 +26,7 @@ const GridItem = React.forwardRef(({ data, position }, ref) => {
         </div>
       </Html>
     ),
-    []
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   return (

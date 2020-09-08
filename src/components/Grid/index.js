@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import useMainStore, {
   GRID_ITEM_PER_COLUMN,
   GRID_COLUMN_COUNT,
@@ -8,7 +8,7 @@ import useMainStore, {
 import { useThree, useFrame } from "react-three-fiber";
 import * as THREE from "three";
 import throttle from "lodash.throttle";
-import { useSpring } from "react-spring/three";
+import { useSpring, config } from "react-spring/three";
 import GridItem from "components/GridItem";
 
 // Frustum to determine if an item is in view
@@ -32,6 +32,12 @@ const Grid = () => {
       tension: 800,
       friction: 120,
     },
+  });
+
+  const [showGrid, setShowGrid] = useState(false);
+  const { offsetProgress } = useSpring({
+    offsetProgress: showGrid ? 0 : 1,
+    config: config.gentle,
   });
 
   // A matrix to keep track of all items' ref
@@ -245,6 +251,148 @@ const Grid = () => {
     }
   }, 300);
 
+  useEffect(() => {
+    setShowGrid(true);
+  }, []);
+
+  // FIXME: Find a neater way (but still clear & easy to read)
+  // Performance is also suffering in term of stability, really should fix
+  const gridRender = useMemo(
+    () => {
+      const topLeft = grid.map((entry, index) => (
+        <GridItem
+          key={`tl-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[0][0][index] = ref)}
+          position={[
+            entry.x - GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
+            entry.y +
+              gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
+            0,
+          ]}
+        />
+      ));
+
+      const topMid = grid.map((entry, index) => (
+        <GridItem
+          key={`tm-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[0][1][index] = ref)}
+          position={[
+            entry.x,
+            entry.y +
+              gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
+            0,
+          ]}
+        />
+      ));
+
+      const topRight = grid.map((entry, index) => (
+        <GridItem
+          key={`tr-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[0][2][index] = ref)}
+          position={[
+            entry.x + GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
+            entry.y +
+              gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
+            0,
+          ]}
+        />
+      ));
+
+      const midLeft = grid.map((entry, index) => (
+        <GridItem
+          key={`ml-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[1][0][index] = ref)}
+          position={[
+            entry.x - GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
+            entry.y,
+            0,
+          ]}
+        />
+      ));
+
+      const mid = grid.map((entry, index) => (
+        <GridItem
+          key={`m-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[1][1][index] = ref)}
+          position={[entry.x, entry.y, 0]}
+        />
+      ));
+
+      const midRight = grid.map((entry, index) => (
+        <GridItem
+          key={`mr-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[1][2][index] = ref)}
+          position={[
+            entry.x + GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
+            entry.y,
+            0,
+          ]}
+        />
+      ));
+
+      const bottomLeft = grid.map((entry, index) => (
+        <GridItem
+          key={`bl-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[2][0][index] = ref)}
+          position={[
+            entry.x - GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
+            entry.y -
+              gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
+            0,
+          ]}
+        />
+      ));
+
+      const bottomMid = grid.map((entry, index) => (
+        <GridItem
+          key={`bm-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[2][1][index] = ref)}
+          position={[
+            entry.x,
+            entry.y -
+              gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
+            0,
+          ]}
+        />
+      ));
+
+      const bottomRight = grid.map((entry, index) => (
+        <GridItem
+          key={`br-${index}`}
+          data={entry}
+          ref={(ref) => (gridItemRefs.current[2][2][index] = ref)}
+          position={[
+            entry.x + GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
+            entry.y -
+              gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
+            0,
+          ]}
+        />
+      ));
+
+      return {
+        topLeft,
+        topMid,
+        topRight,
+        midLeft,
+        mid,
+        midRight,
+        bottomLeft,
+        bottomMid,
+        bottomRight,
+      };
+    },
+    [grid] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   // Update every frame
   useFrame(() => {
     if (gridNeedsUpdate) {
@@ -289,111 +437,26 @@ const Grid = () => {
             entry.material.uniforms.uMouseDownProgress.value =
               mouseDownProgress.value;
           }
+
+          entry.material.uniforms.uOffsetProgress.value = offsetProgress.value;
         })
       )
     );
   });
 
-  // FIXME: Find a neater way (but still clear & easy to read)
-  // Performance is also suffering in term of stability, really should fix
-  const gridRender = useMemo(
-    () =>
-      grid.map((entry, index) => (
-        <group key={index}>
-          {/* Top row */}
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[0][0][index] = ref)}
-            position={[
-              entry.x - GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
-              entry.y +
-                gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
-              0,
-            ]}
-          />
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[0][1][index] = ref)}
-            position={[
-              entry.x,
-              entry.y +
-                gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
-              0,
-            ]}
-          />
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[0][2][index] = ref)}
-            position={[
-              entry.x + GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
-              entry.y +
-                gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
-              0,
-            ]}
-          />
-
-          {/* Mid row */}
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[1][0][index] = ref)}
-            position={[
-              entry.x - GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
-              entry.y,
-              0,
-            ]}
-          />
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[1][1][index] = ref)}
-            position={[entry.x, entry.y, 0]}
-          />
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[1][2][index] = ref)}
-            position={[
-              entry.x + GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
-              entry.y,
-              0,
-            ]}
-          />
-
-          {/* Bottom row */}
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[2][0][index] = ref)}
-            position={[
-              entry.x - GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
-              entry.y -
-                gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
-              0,
-            ]}
-          />
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[2][1][index] = ref)}
-            position={[
-              entry.x,
-              entry.y -
-                gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
-              0,
-            ]}
-          />
-          <GridItem
-            data={entry}
-            ref={(ref) => (gridItemRefs.current[2][2][index] = ref)}
-            position={[
-              entry.x + GRID_COLUMN_WIDTH * GRID_COLUMN_COUNT,
-              entry.y -
-                gridColumnHeights[Math.floor(index / GRID_ITEM_PER_COLUMN)],
-              0,
-            ]}
-          />
-        </group>
-      )),
-    [grid] // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <group position={[0, 0, 0.01]}>
+      {gridRender.topLeft}
+      {gridRender.topMid}
+      {gridRender.topRight}
+      {gridRender.midLeft}
+      {gridRender.mid}
+      {gridRender.midRight}
+      {gridRender.bottomLeft}
+      {gridRender.bottomMid}
+      {gridRender.bottomRight}
+    </group>
   );
-
-  return <group>{gridRender}</group>;
 };
 
 export default React.memo(Grid);

@@ -5,14 +5,38 @@ import { OrbitControls } from "./lib/OrbitControls";
 import * as THREE from "three";
 import { useGesture } from "react-use-gesture";
 import useMainStore from "stores/main";
+import { useSpring } from "react-spring/three";
+import { Z_OFFSET } from "App";
 
 extend({ OrbitControls });
 
 const CameraControls = (props) => {
-  const { setGridNeedsUpdate } = useMainStore();
+  const { dataLoaded, setGridNeedsUpdate } = useMainStore();
   const { camera, gl } = useThree();
   const controls = useRef();
   const mouseDownRef = useRef(false);
+
+  useSpring({
+    cameraZOffset: dataLoaded ? Z_OFFSET : Z_OFFSET + 5,
+    cameraYOffset: dataLoaded ? 0 : Z_OFFSET - 2,
+    onFrame: ({ cameraZOffset, cameraYOffset }) => {
+      if (cameraZOffset !== Z_OFFSET) {
+        camera.position.z = cameraZOffset;
+      }
+
+      if (cameraYOffset !== 0) {
+        camera.position.y = cameraYOffset;
+      }
+
+      if (cameraZOffset === Z_OFFSET && cameraYOffset === 0) {
+        // Remove all default listeners
+        // By default, OrbitControls block other listeners, so we have to take a different approach
+        // if we want to manage both the camera controls & other listeners
+        controls.current.dispose();
+        controls.current.update();
+      }
+    },
+  });
 
   const bindGestures = useGesture(
     {
@@ -25,6 +49,8 @@ const CameraControls = (props) => {
           "none";
 
         controls.current.onMouseDown(event);
+        controls.current.dispose();
+        controls.current.update();
       },
       onMouseUp: (event) => {
         mouseDownRef.current = false;
@@ -48,17 +74,13 @@ const CameraControls = (props) => {
   );
 
   useEffect(() => {
-    // Remove all default listeners
-    // By default, OrbitControls block other listeners, so we have to take a different approach
-    // if we want to manage both the camera controls & other listeners
-    controls.current.dispose();
-    controls.current.update();
-
     // Bind our own listeners for custom control
     bindGestures();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useFrame(() => controls.current && controls.current.update());
+  useFrame(() => {
+    controls.current && controls.current.update();
+  });
 
   return (
     <orbitControls

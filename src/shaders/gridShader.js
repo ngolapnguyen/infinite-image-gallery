@@ -5,6 +5,8 @@ const gridShader = {
     uniform vec2 uResolution;
     uniform vec2 uDistanceDiffFromCamera;
     uniform float uMouseDownProgress;
+    uniform float uZOffset;
+    uniform float uOffsetProgress;
 
     #define PI 3.1415926535897932384626433832795
 
@@ -13,11 +15,11 @@ const gridShader = {
       vec2 globalPosition = position.xy + uDistanceDiffFromCamera;
 
       if (uMouseDownProgress > 0.0) {
-        distortedPosition.x = position.x + pow(abs(clamp(globalPosition.y, -10.0, 10.0) * clamp(globalPosition.x, -1.0, 1.0)), 2.0) * 0.015 * sign(globalPosition.x) * uMouseDownProgress;
+        distortedPosition.x = position.x + pow(abs(clamp(globalPosition.y, -10.0, 10.0) * clamp(globalPosition.x, -1.0, 1.0)), 2.0) * 0.01 * sign(globalPosition.x) * uMouseDownProgress;
         distortedPosition.y = position.y + globalPosition.y * 0.025 * uMouseDownProgress;
       } 
       
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(distortedPosition, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(distortedPosition.xy, uOffsetProgress * uZOffset, 1.0);
       vUv = uv;
     }
   `,
@@ -27,6 +29,7 @@ const gridShader = {
     uniform sampler2D uTexture;
     uniform vec2 uTextureFactor;
     uniform float uMouseDownProgress;
+    uniform float uOffsetProgress;
     uniform float uBrightness;
 
     // Calculate to maintain image aspect ratio
@@ -63,7 +66,7 @@ const gridShader = {
       float green = texture2D(uTexture, computeUV(centeredUv, k, kcube)).g;
       float blue = texture2D(uTexture, computeUV(centeredUv, k - offset, kcube)).b;
 
-      gl_FragColor = vec4(vec3(red, green, blue) * uBrightness, 1.0);
+      gl_FragColor = vec4(vec3(red, green, blue) * uBrightness, (1.0 - uOffsetProgress) * 1.0);
     }
   `,
 };
