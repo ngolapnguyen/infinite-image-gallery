@@ -24,7 +24,7 @@ npm start
 
 ## A few words
 
-### Two core problems I solved in this project: {#solutions}
+### Two core problems I solved in this project:
 
 1. How to build an infinite image gallery:
    - Render multiple duplicate grids that surround the center, original grid (I ended up with 3x3 = 9 grids). Keep track of which grid is in center and which are the boundaries
@@ -32,7 +32,7 @@ npm start
    - Under the correct conditions (boundary reached), update the grids' position & update the grids' position tracker. E.g.: Top boundary reached, move the whole bottom 3 grids up top. Now the first row becomes the middle row, and the center row becomes the bottom row...
 2. Update vertex shader on `mousemove`, calculating mouse's offset distance with current camera's position & update the image distortion effect.
 
-### Major issues I'm awared of and haven't been able to solve: {#issues}
+### Major issues I'm awared of and haven't been able to solve:
 
 - Performance. Rendering multiple meshes at the same time is heavy. I'm still looking for a way to optimize this
 
